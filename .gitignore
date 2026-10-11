@@ -1,2 +1,5 @@
 # Local-only training data — never commit personal progress to the public repo.
 training_state.md
+# Practice recordings and per-drill analysis — local only.
+recordings/
+__pycache__/

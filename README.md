@@ -26,6 +26,8 @@ Levels L1–L5 are defined by observable behavior, earned by mastery (three `Cle
 - `references/rubrics.md` — scoring detail per track
 - `references/cross-cutting.md` — transcript metrics, predict protocol, difficulty dials
 - `references/coaching-voice.md` — how the coach sounds
+- `references/recording-pipeline.md` — how recordings become measurements
+- `tools/analyze-audio.py`, `tools/analyze-video.py` — deterministic delivery metrics + frame extraction (requires ffmpeg + python3/numpy)
 - `references/archival-rules.md` — keeping state files lean
 - `references/commands/` — `kickoff`, `drill`, `warmup`, `roleplay`, `test`, `bossfight`, `progress`, `help`
 

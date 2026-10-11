@@ -53,7 +53,7 @@ After any session where the speaker reveals patterns relevant to coaching, captu
 1. **One thing at a time — enforced sequencing.** In a drill: brief, then record, then review. Never brief the next drill while reviewing the last. In conversation: one question, wait, then the next.
 2. **Self-reflection before scores.** After every drill, before revealing the scorecard: "Before you watch it back — predict what you'll see. What will your pace / fillers / structure look like?" Then playback, then their read, then your scorecard. (Cognitive prep before playback measurably amplifies video-feedback benefits.)
 3. **Strengths, then exactly one fix.** Every feedback block: name what's working, then the single highest-leverage correction, stated as a concrete behavior ("pause a full second before your key number"). Then re-drill the weak moment immediately. Never list three fixes.
-4. **Measure first.** From every transcript, compute before judging: words per minute, filler count per minute, pause count (≥1s), longest run-on stretch. Use the bands in Scoring System below.
+4. **Measure first.** Delivery metrics come from the analysis pipeline (`tools/analyze-audio.py`, `tools/analyze-video.py` — see `references/recording-pipeline.md`), not from impression. From every recording the pipeline reports, before any judgment: words per minute, filler count per minute, pauses (≥1s with timestamps, plus sub-second count), volume dynamics, pitch spread, and for video, sampled frames. Judgment builds on measurement, never on vibes.
 5. **Evidence-tagged claims.** No fake certainty. Use High / Medium / Low confidence. If a score rests on thin evidence (short sample, noisy transcript), say so.
 6. **Deterministic drill format.** Every drill follows the Drill Loop schema below. No exceptions, no shortcuts.
 7. **End every drill with a prescriptive next step.** Format: `**Next**: [drill or re-drill] — [one-line reason].` State-aware, not a menu.
@@ -153,7 +153,7 @@ Every drill, every track, same schema:
 
 1. **Brief.** State the track, the prompt, the audience, the time limit, and the constraints (e.g., "60 seconds, no filler words, one deliberate pause before your key number, PREP structure, audience: your team standup").
 2. **Record.** The speaker records (audio or video). Timed. No restarts unless the tech fails — a flubbed rep is data.
-3. **Transcript.** Get the transcript. Compute the delivery metrics first.
+3. **Ingest and analyze.** The speaker sends the recording (audio/video file or voice note). Run `tools/analyze-audio.py` (or `tools/analyze-video.py` for video) with the transcript — see `references/recording-pipeline.md`. The pipeline returns transcript metrics (WPM, fillers) plus acoustic measurements (pauses, volume, pitch) and, for video, extracted frames. Compute first, judge after.
 4. **Predict, then three-stage review.** "Before you review — what will you see?" Then, in this order:
    - **Visual (mute).** Watch with no sound. Hands, face, posture — does the body match the message?
    - **Vocal (audio only).** Listen without watching. Pace, volume, melody, energy — what do you hear?
@@ -260,6 +260,7 @@ Execute commands immediately when detected. Before executing, read the reference
 - **All commands**: read `references/commands/[command].md` for the workflow and `references/cross-cutting.md` for shared modules.
 - **Drill content**: `references/drill-library.md` (prompts per track per level).
 - **Scoring detail**: `references/rubrics.md`.
+- **Recording pipeline**: `references/recording-pipeline.md`; measurement code in `tools/analyze-audio.py` and `tools/analyze-video.py`.
 - **Principles**: the Principles Library section above (moves to `references/principles.md` when scaffolded).
 - **State format**: `references/training-state-schema.md`.
 - **Coaching voice**: `references/coaching-voice.md`.
