@@ -1,6 +1,8 @@
 # Recording Pipeline
 
-How recordings become measurements. The pipeline measures; the coach judges.
+The voice/video upgrade path — drills run text-first by default (see Response
+Modes in COACH.md). When the speaker upgrades to voice or video, this pipeline
+turns the recording into measurements. The pipeline measures; the coach judges.
 Deterministic metrics come from code (`tools/`), never from impression.
 
 ## Inputs

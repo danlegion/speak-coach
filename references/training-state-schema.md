@@ -21,11 +21,11 @@ A table with one row per track. Level is `—` (unplaced) until `kickoff` or the
 | Stage | L1 | 2026-10-12 | … |
 
 ### 3. Drill History
-One row per completed drill, newest last. `Result` is `Clear` or `Re-drill`. `Dial` records any difficulty dial used above baseline (`none`, `time-shrink`, `constraint-stack`, `hostile-followup`, `camera-on`, `audience-upgrade`). `Metrics` points to the pipeline's `metrics.json` for the drill (`recordings/<yyyy-mm-dd>-<drill>/metrics.json`, gitignored) when a recording was analyzed.
+One row per completed drill, newest last. `Result` is `Clear` or `Re-drill`. `Mode` is `text`, `voice`, or `video`. `Dial` records any difficulty dial used above baseline (`none`, `time-shrink`, `constraint-stack`, `hostile-followup`, `camera-on`, `audience-upgrade`). `Metrics` points to the pipeline's `metrics.json` for the drill (`recordings/<yyyy-mm-dd>-<drill>/metrics.json`, gitignored) when a recording was analyzed.
 
-| Date | Track | Drill | Level bar | Result | Dial | One fix carried forward | Metrics |
-|---|---|---|---|---|---|---|---|
-| 2026-10-12 | Voice | Sixty Clean | L2 | Clear | none | pause before the number | recordings/2026-10-12-V-L1-1/metrics.json |
+| Date | Track | Drill | Mode | Level bar | Result | Dial | One fix carried forward | Metrics |
+|---|---|---|---|---|---|---|---|---|
+| 2026-10-12 | Voice | Sixty Clean | voice | L2 | Clear | none | pause before the number | recordings/2026-10-12-V-L1-1/metrics.json |
 
 Mastery counting: a track advances Ln → Ln+1 after **three `Clear` rows at that track scored against the Ln bar**, with at least one row using a dial above baseline, and the third Clear differing in prompt or dial from the first two. The coach announces the level-up and updates the Track Levels table in the same write.
 

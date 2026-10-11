@@ -1,6 +1,6 @@
 # Drill Library
 
-Starter drills per track per level. The coach picks the drill matching the speaker's current level on the requested track; the third `Clear` toward a mastery gate must differ in prompt or difficulty dial from the first two. Every drill runs the Drill Loop (brief → record → transcript → predict → three-stage review → dual scorecard → one fix → re-drill).
+Starter drills per track per level. The coach picks the drill matching the speaker's current level on the requested track; the third `Clear` toward a mastery gate must differ in prompt or difficulty dial from the first two. Every drill runs the Drill Loop (brief → respond → ingest & analyze → predict → review → dual scorecard → one fix → re-drill). Drills default to text mode (write in one go, content scored only); voice/video is the upgrade — see Response Modes in COACH.md.
 
 Format per drill: **prompt**, time limit, constraints, and the **bar** (what `Clear` looks like at that level).
 

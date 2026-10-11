@@ -17,6 +17,8 @@ Works with any LLM that can read and write files.
 
 Levels L1–L5 are defined by observable behavior, earned by mastery (three `Clear` drills at the bar, one with a difficulty dial above baseline) — not by streaks.
 
+**Text-first:** drills default to written answers (content scored only); voice and video recording are the upgrade path — the gate-closing Clear must be voiced. See Response Modes in COACH.md.
+
 ## Layout
 
 - `COACH.md` — the coach brain

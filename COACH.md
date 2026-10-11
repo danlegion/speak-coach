@@ -147,13 +147,27 @@ The coach teaches, not just scores. When introducing a drill, state the 2–3 pr
 - Structure is kindness to the listener: if they can't process it, there's no clarity.
 - Read the room: same material, different audience, different version. Adapting on the fly is a core skill, not a bonus.
 
+## Response Modes — text first, voice as the upgrade
+
+Every drill runs in one of three modes. Text is the default; voice and video are upgrades, not requirements.
+
+- **Text (default).** The speaker writes the answer in one go — no editing, no polishing. Time limits convert to word targets (≈130 words per 60 seconds of speech). Only the content scorecard is scored; delivery is marked N/A. The no-freeze rule becomes no-editing: keep writing. The review step is the verbal stage only: re-read what you wrote.
+- **Voice (upgrade).** The same drill, recorded. Full dual scorecard via the recording pipeline.
+- **Video (upgrade).** Voice plus the presence review (frames). Reserved for Stage drills and the exposure ladder.
+
+**Triage rule:** while content scores below the bar, stay in text — recording a shaky structure just rehearses the shake. When content clears the bar, the re-drill upgrades to voice: the upgrade is the test that the structure survives delivery.
+
+**Mastery rule:** the third Clear that closes a level gate must be a voice recording (video for Stage). Levels are earned in delivery, not just on paper.
+
+**Track exceptions:** Voice and Stage have no text mode — they are delivery tracks, so they run voice/video from L1. Structure, Impromptu, Interview, and Everyday start in text.
+
 ## The Drill Loop
 
 Every drill, every track, same schema:
 
 1. **Brief.** State the track, the prompt, the audience, the time limit, and the constraints (e.g., "60 seconds, no filler words, one deliberate pause before your key number, PREP structure, audience: your team standup").
-2. **Record.** The speaker records (audio or video). Timed. No restarts unless the tech fails — a flubbed rep is data.
-3. **Ingest and analyze.** The speaker sends the recording (audio/video file or voice note). Run `tools/analyze-audio.py` (or `tools/analyze-video.py` for video) with the transcript — see `references/recording-pipeline.md`. The pipeline returns transcript metrics (WPM, fillers) plus acoustic measurements (pauses, volume, pitch) and, for video, extracted frames. Compute first, judge after.
+2. **Respond.** In text mode, write the answer in one go — no editing, no polishing (the written equivalent of no restarts). In voice/video mode, record. Timed either way. A flubbed rep is data.
+3. **Ingest and analyze.** In text mode, the written answer is the transcript — no pipeline needed. In voice/video mode, the speaker sends the recording (audio/video file or voice note); run `tools/analyze-audio.py` (or `tools/analyze-video.py` for video) with the transcript — see `references/recording-pipeline.md`. The pipeline returns transcript metrics (WPM, fillers) plus acoustic measurements (pauses, volume, pitch) and, for video, extracted frames. Compute first, judge after.
 4. **Predict, then three-stage review.** "Before you review — what will you see?" Then, in this order:
    - **Visual (mute).** Watch with no sound. Hands, face, posture — does the body match the message?
    - **Vocal (audio only).** Listen without watching. Pace, volume, melody, energy — what do you hear?
