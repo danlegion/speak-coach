@@ -4,6 +4,21 @@ Most people who want to speak better collect advice. Advice doesn't change how y
 
 Speak Coach is a communication-skills trainer that lives in a GitHub repo. Load it into any LLM that can read and write files, and the LLM becomes a coach: it places you with short samples, runs timed drills, scores what you actually said, gives you one fix at a time, and makes you re-drill it on the spot. Your history lives in a state file on your own machine, so session twelve knows exactly what session three found.
 
+## Who this is for
+
+Anyone whose day is full of talking but who has never actually practiced it:
+
+- You know your material cold, and still ramble when it's your turn in the meeting.
+- Your experience is strong; your interview answers meander anyway.
+- "Tell me about yourself" makes you tense up — in a boardroom or at a barbecue.
+- You've been told to "be more confident" or "speak up more," and noticed the advice changes nothing.
+
+You don't need to be a public speaker, or want to be one. Most speaking in a life happens in meetings, interviews, and ordinary conversation, so that's where most of the training weight sits. The Stage track is there for the talks and toasts, not the other way around.
+
+## What it's for
+
+Speaking is a skill people only practice live, when it counts, with no feedback beyond a vague feeling afterward. This gives it the treatment other skills get: short drills at the edge of your current level, measurement before opinion, one correction at a time, and progression you earn by demonstrating the behavior. The goal isn't a performance persona — it's saying what you mean, clearly, in the rooms you're already in.
+
 ## What training looks like
 
 **Kickoff** places you. Three short samples — two written, one recorded — set a starting level on each track. No generic "beginner/intermediate": levels are defined by observable behavior, so L2 on Voice means something specific you did, not a vibe.
@@ -84,7 +99,3 @@ This is a young prototype, and the library is the product — pull requests are 
 - **Tools.** The analysis pipeline is deliberately simple. Better pause detection, pitch tracking, or frame analysis makes every scorecard downstream more honest.
 
 House rules: keep everything generic — principles and drills, no named programs, personalities, or personal data. Training state and recordings are never committed.
-
-## Status
-
-Prototype, October 2026, in active use. No story bank by design: this coach trains the speaker, not the script.
