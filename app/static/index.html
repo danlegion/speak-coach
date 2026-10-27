@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Speak Coach — Practice</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main id="app">
+  <header>
+    <div class="brand">🎙️ Speak Coach</div>
+    <div class="mode" id="modeLabel">Pocket mode</div>
+  </header>
+
+  <!-- BRIEF -->
+  <section id="screen-brief" class="screen">
+    <div class="card">
+      <div class="track" id="dTrack">Voice · L1</div>
+      <h1 id="dName">Today's drill</h1>
+      <p class="prompt" id="dPrompt"></p>
+      <div class="meta">
+        <div><span class="k">Time</span><span id="dTime"></span></div>
+        <div><span class="k">Audience</span><span id="dAudience"></span></div>
+        <div><span class="k">Bar</span><span id="dBar"></span></div>
+      </div>
+      <div class="fixbox">
+        <div class="k">Your one fix</div>
+        <div id="dFix" class="fix"></div>
+      </div>
+      <ul class="constraints" id="dConstraints"></ul>
+      <ul class="principles" id="dPrinciples"></ul>
+    </div>
+    <label class="videotoggle"><input type="checkbox" id="videoToggle"> Record video too</label>
+    <button class="primary" id="btnStart">Start drill</button>
+  </section>
+
+  <!-- RECORD -->
+  <section id="screen-record" class="screen hidden">
+    <div id="countdown" class="countdown hidden">3</div>
+    <video id="preview" class="hidden" autoplay muted playsinline></video>
+    <div class="timer" id="timer">0:00</div>
+    <div class="target" id="targetLabel">Target 1:00 · no restarts</div>
+    <div class="recrow">
+      <button class="record" id="btnRec">● Record</button>
+      <button class="ghost hidden" id="btnStop">■ Stop</button>
+    </div>
+    <p class="hint" id="recHint">When the next word isn't ready — pause. Don't repeat.</p>
+  </section>
+
+  <!-- PREDICT -->
+  <section id="screen-predict" class="screen hidden">
+    <h2>Before you hear it back — predict</h2>
+    <p class="sub">Your read vs. the measured read is the calibration data.</p>
+    <div class="k">My pace was…</div>
+    <div class="chips" id="paceChips">
+      <button data-v="slow">Too slow</button>
+      <button data-v="in-band">In the band</button>
+      <button data-v="fast">Too fast</button>
+    </div>
+    <div class="k">Fillers &amp; repeats were…</div>
+    <div class="chips" id="fillerChips">
+      <button data-v="few">Few</button>
+      <button data-v="some">Some</button>
+      <button data-v="many">Many</button>
+    </div>
+    <button class="primary" id="btnUpload" disabled>Send to Felix</button>
+    <p class="hint" id="upHint"></p>
+  </section>
+
+  <!-- DONE / SCORECARD -->
+  <section id="screen-done" class="screen hidden">
+    <div class="card" id="waitCard">
+      <div class="big">✓ Received</div>
+      <p>Felix has your rep — transcribing, measuring, judging.<br>
+      Do your review while you wait: listen once, just listen.</p>
+      <audio id="playback" controls class="hidden"></audio>
+      <div class="status" id="pollStatus">Waiting for scorecard…</div>
+    </div>
+    <div class="card hidden" id="scoreCard">
+      <div class="verdict" id="scVerdict"></div>
+      <div class="metrics" id="scMetrics"></div>
+      <div class="k">What's working</div>
+      <ul id="scStrengths"></ul>
+      <div class="fixbox">
+        <div class="k">The one fix</div>
+        <div class="fix" id="scFix"></div>
+      </div>
+      <p class="next" id="scNext"></p>
+      <button class="primary" id="btnAgain">Done</button>
+    </div>
+  </section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -3,3 +3,4 @@ training_state.md
 # Practice recordings and per-drill analysis — local only.
 recordings/
 __pycache__/
+app/.token

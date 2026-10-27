@@ -1,0 +1,22 @@
+{
+  "drill": {
+    "audience": "Just the coach — speak like you're telling a friend at work on Monday morning.",
+    "bar": "Reaches 60 seconds without a restart",
+    "code": "V-L1-1",
+    "constraints": [
+      "No stopping or restarting — a flubbed rep is data",
+      "When the next word isn't ready, pause a full second instead of repeating the last phrase"
+    ],
+    "level": "L1 (provisional — this rep confirms it)",
+    "name": "Sixty Clean",
+    "principles": [
+      "Fillers are discomfort with silence made audible — practice the pause and they starve",
+      "Slow down on what's important; one default speed flattens everything"
+    ],
+    "prompt": "Talk for 60 seconds about what you did this weekend.",
+    "time_seconds": 60,
+    "track": "Voice"
+  },
+  "fix_carried_forward": "Pause 1s instead of repeating the phrase",
+  "generated_for": "2026-10-26"
+}
