@@ -36,19 +36,26 @@ cd app && PORT=8765 python3 server.py
 python3 app/process_session.py recordings/<session-dir>
 ```
 
-## Hosting (open decision, noted 2026-10-26)
+## Hosting (decided 2026-10-26: Render)
 
 Felix's VM cannot host this for the phone: the Muse Tailscale client is
-outbound-only (accepts no connections, hosts nothing). Candidates:
+outbound-only (accepts no connections, hosts nothing). Daniel chose Render
+— his existing pattern (MiFicha). Live service: `speak-coach` →
+https://speak-coach-1hag.onrender.com (free plan, Oregon, auto-deploys from
+`main`). HTTPS out of the box, which `getUserMedia` requires outside
+localhost; reachable from the phone anywhere and from the Portal browser
+later. The access token (`SPEAK_COACH_TOKEN`) is set in the service env and
+kept locally in `app/.token` (gitignored); the client asks for it once per
+device and stores it in localStorage.
 
-- **Render** (recommended): Daniel's existing pattern (MiFicha). HTTPS out
-  of the box, which `getUserMedia` requires outside localhost; reachable
-  from the phone anywhere and from the Portal browser later. Recordings sit
-  on the service's disk only until Felix's pass pulls them into the VM's
-  `recordings/` (then they can be deleted there).
-- **A home machine** (e.g. the desktop PC) on the LAN/tailnet: most private,
-  but needs a machine that's always on, a script Daniel runs himself, and
-  an HTTPS story for the phone browser — more setup, later if wanted.
+Operational notes:
+- Free tier sleeps when idle: the first hit after a quiet spell can take
+  ~30–60 s to wake. Warm requests answer in about a second.
+- Session ids are dated in the server's clock (UTC on Render) — a Monday
+  evening PT recording may carry Tuesday's date. Harmless; noted so nobody
+  "fixes" it later.
+- Recordings sit on the service's disk only until Felix's sync pulls them
+  into the VM's `recordings/` (the durable store).
 
 ## Verified 2026-10-26 (local smoke test)
 
@@ -57,3 +64,8 @@ transcript (faster-whisper base) → metrics merged (WPM 186.7, fillers
 0.0/min, repetitions 5.66/min — it caught "I am working on surface" and
 "we went to the park") → Felix scorecard → `/api/status` returns `scored`
 with the full payload the client renders.
+
+Same chain re-verified against the live Render service the same evening:
+session `2026-10-27-V-L1-1-022633` uploaded to the hosted mailbox, synced
+down, processed (WPM 195.4, repetitions 5.91/min), metrics pushed up,
+scorecard written and pushed, live `/api/status` → `scored`.
