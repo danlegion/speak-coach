@@ -44,4 +44,7 @@ button.ghost { background:#2c3742; color:var(--ink); }
 .metrics .mv { font-size:21px; font-weight:800; display:block; }
 .metrics .mk { color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
 .next { font-weight:600; }
+.past { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.past button { padding:12px; border-radius:12px; border:1px solid #2c3742; background:#12181f; color:var(--ink); font-size:16px; text-align:left; }
+.past button:active { border-color:var(--acc); }
 audio { width:100%; margin-top:10px; }

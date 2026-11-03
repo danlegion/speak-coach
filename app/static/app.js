@@ -203,6 +203,7 @@ async function upload() {
     if (!res.ok) throw new Error(`upload failed (${res.status})`);
     const out = await res.json();
     state.session = out.session;
+    localStorage.setItem("sc_last_session", out.session);
     const pb = $("playback");
     pb.src = URL.createObjectURL(state.blob);
     pb.classList.remove("hidden");
@@ -219,6 +220,14 @@ async function poll() {
   if (!state.session) return;
   try {
     const res = await apiFetch(`/api/status?session=${encodeURIComponent(state.session)}`);
+    if (res.status === 404) {
+      // The mailbox lost this session (a deploy wipes Render's free disk).
+      // Say so instead of waiting forever; the scorecard survives on
+      // Felix's side and reappears under Past scorecards after a restore.
+      clearInterval(state.pollId);
+      $("pollStatus").textContent = "This session is gone from the mailbox (a deploy cleared it) — your take and scorecard are safe with Felix. Reload the page and open it under Past scorecards.";
+      return;
+    }
     if (!res.ok) return;
     const out = await res.json();
     if (out.status === "scored") {
@@ -228,6 +237,42 @@ async function poll() {
       $("pollStatus").textContent = "Measured ✓ — Felix is writing the scorecard…";
     }
   } catch (_) { /* keep polling */ }
+}
+
+// Past scorecards: survives reloads, unlike the in-memory session id.
+async function loadPast() {
+  const list = $("pastList");
+  try {
+    const res = await apiFetch("/api/sessions");
+    if (!res.ok) { list.textContent = "Couldn't load past scorecards yet."; return; }
+    const sessions = (await res.json()).sessions || [];
+    const scored = sessions.filter((s) => s.has_scorecard);
+    if (!scored.length) { list.textContent = "No scorecards yet — your first one lands here."; return; }
+    list.innerHTML = "";
+    for (const s of scored.reverse()) {
+      const btn = document.createElement("button");
+      btn.textContent = `${s.drill || "Drill"} · ${s.session.slice(0, 10)} · loading…`;
+      btn.addEventListener("click", async () => {
+        state.session = s.session;
+        localStorage.setItem("sc_last_session", s.session);
+        show("screen-done");
+        $("waitCard").classList.remove("hidden");
+        $("scoreCard").classList.add("hidden");
+        $("pollStatus").textContent = "Loading scorecard…";
+        await poll();
+      });
+      list.appendChild(btn);
+      try {
+        const st = await apiFetch(`/api/status?session=${encodeURIComponent(s.session)}`);
+        if (st.ok) {
+          const out = await st.json();
+          if (out.scorecard) btn.textContent = `${s.drill || "Drill"} · ${s.session.slice(0, 10)} · ${out.scorecard.verdict}`;
+        }
+      } catch (_) { /* leave the loading label */ }
+    }
+  } catch (_) {
+    list.textContent = "Couldn't load past scorecards yet.";
+  }
 }
 
 function renderScorecard(sc) {
@@ -269,4 +314,4 @@ $("btnUpload").addEventListener("click", upload);
 $("btnAgain").addEventListener("click", () => location.reload());
 wireChips("paceChips", "pace");
 wireChips("fillerChips", "fillers");
-ensurePlan();
+ensurePlan().then((ok) => { if (ok) loadPast(); });

@@ -34,11 +34,14 @@ def token() -> str:
 
 
 def req(method: str, path: str, data: bytes | None = None,
-        ctype: str = "application/json") -> bytes:
+        ctype: str = "application/json",
+        extra_headers: dict | None = None) -> bytes:
     r = urllib.request.Request(BASE + path, data=data, method=method)
     r.add_header("X-App-Token", token())
     if data is not None:
         r.add_header("Content-Type", ctype)
+    for k, v in (extra_headers or {}).items():
+        r.add_header(k, v)
     with urllib.request.urlopen(r, timeout=120) as resp:
         return resp.read()
 
@@ -104,6 +107,70 @@ def do_up() -> None:
     print("up: done")
 
 
+MAP_FILE = RECORDINGS_DIR / ".remote-map.json"
+
+
+def load_map() -> dict:
+    if MAP_FILE.is_file():
+        try:
+            return json.loads(MAP_FILE.read_text("utf-8"))
+        except json.JSONDecodeError:
+            return {}
+    return {}
+
+
+def do_restore() -> None:
+    """Re-upload local sessions missing from the mailbox.
+
+    Render's free disk is wiped on every deploy, so the mailbox is not
+    durable — the VM's recordings/ is. A restored session gets a NEW
+    remote id (recorded in .remote-map.json) so later runs don't
+    duplicate it; the Past scorecards list in the app is id-agnostic.
+    """
+    remote = {s["session"] for s in remote_sessions()}
+    mapping = load_map()
+    changed = False
+    if not RECORDINGS_DIR.is_dir():
+        print("restore: no local recordings")
+        return
+    for sdir in sorted(RECORDINGS_DIR.iterdir()):
+        if not sdir.is_dir() or not (sdir / "scorecard.json").is_file():
+            continue
+        recs = sorted(p for p in sdir.glob("recording.*") if p.is_file())
+        if not recs:
+            continue
+        rid = mapping.get(sdir.name, sdir.name)
+        if rid in remote:
+            continue
+        meta = json.loads((sdir / "meta.json").read_text("utf-8")) \
+            if (sdir / "meta.json").is_file() else {}
+        headers = {"X-Predict-Pace": (meta.get("predict") or {}).get("pace", ""),
+                   "X-Predict-Fillers": (meta.get("predict") or {}).get("fillers", "")}
+        out = json.loads(req(
+            "POST",
+            f"/api/upload?drill={meta.get('drill', 'V-L1-1')}"
+            f"&mode={meta.get('mode', 'audio')}",
+            recs[0].read_bytes(),
+            ctype=meta.get("content_type", "application/octet-stream"),
+            extra_headers=headers))
+        new_id = out["session"]
+        payload = {}
+        for key, fname in (("metrics", "metrics.json"),
+                           ("scorecard", "scorecard.json")):
+            f = sdir / fname
+            if f.is_file():
+                payload[key] = json.loads(f.read_text("utf-8"))
+        req("POST", f"/api/sessions/{new_id}/results",
+            json.dumps(payload).encode("utf-8"))
+        mapping[sdir.name] = new_id
+        changed = True
+        print(f"restore: {sdir.name} -> {new_id} (with metrics + scorecard)")
+    if changed:
+        MAP_FILE.write_text(json.dumps(mapping, indent=2), encoding="utf-8")
+    else:
+        print("restore: nothing missing")
+
+
 def main() -> int:
     if not BASE:
         print("set SPEAK_COACH_BASE", file=sys.stderr)
@@ -115,7 +182,9 @@ def main() -> int:
         do_process()
     if cmd in ("up", "all"):
         do_up()
-    if cmd not in ("down", "process", "up", "all"):
+    if cmd in ("restore", "all"):
+        do_restore()
+    if cmd not in ("down", "process", "up", "restore", "all"):
         print(__doc__, file=sys.stderr)
         return 2
     return 0
