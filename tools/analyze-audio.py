@@ -138,12 +138,16 @@ def analyze(path, transcript_text=None):
         duration_s = float(run(["ffprobe", "-v", "error",
                                 "-show_entries", "format=duration",
                                 "-of", "csv=p=0", str(path)]))
-    except RuntimeError:
-        raise RuntimeError("ffprobe failed — is ffmpeg installed and the file valid?")
+    except (RuntimeError, ValueError):
+        # MediaRecorder webm files often carry no duration metadata
+        # (ffprobe reports N/A). Fall back to the decoded sample count.
+        duration_s = None
     with tempfile.TemporaryDirectory() as td:
         wav = Path(td) / "audio.wav"
         to_wav(path, wav)
         x = read_wav(wav)
+    if duration_s is None:
+        duration_s = len(x) / SAMPLE_RATE
     if len(x) == 0:
         raise RuntimeError("no audio decoded from file")
     frame_n, hop_n = int(FRAME_S * SAMPLE_RATE), int(HOP_S * SAMPLE_RATE)

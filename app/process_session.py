@@ -101,6 +101,19 @@ def main() -> int:
     if transcript_path.is_file():
         cmd += ["--transcript", str(transcript_path)]
     proc = subprocess.run(cmd, capture_output=True, text=True)
+    if proc.returncode != 0 and tool == "analyze-video.py":
+        # Browsers label audio-only recordings video/webm when the
+        # MediaRecorder container is webm, so "video" sessions often have
+        # no video stream at all. Fall back to the audio tool instead of
+        # failing the whole pass.
+        print(f"{tool} failed ({proc.stderr.strip()[:120]}); "
+              "falling back to analyze-audio.py", file=sys.stderr)
+        tool = "analyze-audio.py"
+        cmd = [sys.executable, str(TOOLS_DIR / tool), str(recording),
+               "--out", str(raw_out)]
+        if transcript_path.is_file():
+            cmd += ["--transcript", str(transcript_path)]
+        proc = subprocess.run(cmd, capture_output=True, text=True)
     raw = {}
     if raw_out.is_file():
         raw = json.loads(raw_out.read_text("utf-8"))

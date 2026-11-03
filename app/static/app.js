@@ -184,7 +184,10 @@ async function upload() {
     }
   }
   const d = state.plan.drill;
-  const mode = state.mime.startsWith("video") || $("videoToggle").checked ? "video" : "audio";
+  // Mode is what the user asked for, not the container: browsers report
+  // audio-only MediaRecorder output as video/webm, which previously sent
+  // audio takes down the video-analysis path and stalled the pass.
+  const mode = $("videoToggle").checked ? "video" : "audio";
   $("btnUpload").disabled = true;
   $("upHint").textContent = "Sending…";
   try {
