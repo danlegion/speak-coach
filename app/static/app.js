@@ -48,11 +48,21 @@ if (Math.min(screen.width, screen.height) >= 600 && screen.width > screen.height
   $("modeLabel").textContent = "Station mode";
 }
 
+let planReady = false;
+
 async function loadPlan() {
+  // Validates before touching state.plan: a 401 body ({"error": ...}) must
+  // never be stored as the plan, or upload() later crashes on drill.code.
   const res = await apiFetch("/api/plan");
+  if (!res.ok) {
+    const err = new Error(`plan request failed (${res.status})`);
+    err.status = res.status;
+    throw err;
+  }
   const plan = await res.json();
+  const d = plan && plan.drill;
+  if (!d || !d.code) throw new Error("plan response has no drill");
   state.plan = plan;
-  const d = plan.drill;
   $("dTrack").textContent = `${d.track} · ${d.level}`;
   $("dName").textContent = `${d.name} (${d.code})`;
   $("dPrompt").textContent = d.prompt;
@@ -60,9 +70,51 @@ async function loadPlan() {
   $("dAudience").textContent = d.audience;
   $("dBar").textContent = d.bar;
   $("dFix").textContent = plan.fix_carried_forward;
-  $("dConstraints").innerHTML = d.constraints.map((c) => `<li>${c}</li>`).join("");
-  $("dPrinciples").innerHTML = d.principles.map((c) => `<li>${c}</li>`).join("");
+  $("dConstraints").innerHTML = (d.constraints || []).map((c) => `<li>${c}</li>`).join("");
+  $("dPrinciples").innerHTML = (d.principles || []).map((c) => `<li>${c}</li>`).join("");
   $("targetLabel").textContent = `Target ${fmt(d.time_seconds)} · no restarts`;
+}
+
+// Retries through the free tier's wake-up (first hit after idle can take
+// ~a minute). A 401 is not retried: it means the token is missing/wrong,
+// so clear it and let the next attempt prompt for it again.
+async function ensurePlan() {
+  const delays = [0, 3000, 10000, 20000];
+  $("btnStart").disabled = true;
+  for (let i = 0; i < delays.length; i++) {
+    if (delays[i]) await new Promise((r) => setTimeout(r, delays[i]));
+    $("dPrompt").textContent = i === 0
+      ? "Loading today's plan…"
+      : "Waking the mailbox — this can take a minute on the free tier…";
+    try {
+      await loadPlan();
+      planReady = true;
+      $("btnStart").disabled = false;
+      $("btnStart").textContent = "Start drill";
+      return true;
+    } catch (err) {
+      if (err.status === 401) {
+        localStorage.removeItem("sc_token");
+        $("dPrompt").textContent = "The mailbox didn't accept the saved token — tap “Retry loading plan” and re-enter it when asked.";
+        break;
+      }
+    }
+  }
+  $("btnStart").disabled = false;
+  $("btnStart").textContent = "Retry loading plan";
+  if ($("dPrompt").textContent.startsWith("Waking")) {
+    $("dPrompt").textContent = "Couldn't reach the mailbox — check connection and tap “Retry loading plan”.";
+  }
+  return false;
+}
+
+// Lets a recorded take be saved out of the page if upload keeps failing,
+// so a take is never trapped in the tab.
+function offerTakeDownload() {
+  if (!state.blob) return "";
+  const url = URL.createObjectURL(state.blob);
+  const ext = state.mime.includes("mp4") ? "mp4" : "webm";
+  return ` <a href="${url}" download="speak-coach-take.${ext}">Download this take as a backup</a>`;
 }
 
 async function startRecording() {
@@ -124,6 +176,13 @@ function wireChips(elId, key) {
 }
 
 async function upload() {
+  if (!state.plan || !state.plan.drill) {
+    $("upHint").textContent = "Today's plan never loaded, so there's no drill to attach this take to — reconnecting…";
+    if (!(await ensurePlan())) {
+      $("upHint").innerHTML = `Still no plan loaded. ${offerTakeDownload()} Or reload the page and try again.`;
+      return;
+    }
+  }
   const d = state.plan.drill;
   const mode = state.mime.startsWith("video") || $("videoToggle").checked ? "video" : "audio";
   $("btnUpload").disabled = true;
@@ -148,7 +207,7 @@ async function upload() {
     poll();
     state.pollId = setInterval(poll, 8000);
   } catch (err) {
-    $("upHint").textContent = `Upload failed — ${err.message}. Your take is still on this screen; tap again to retry.`;
+    $("upHint").innerHTML = `Upload failed — ${err.message}. Your take is still on this screen; tap again to retry.${offerTakeDownload()}`;
     $("btnUpload").disabled = false;
   }
 }
@@ -189,7 +248,10 @@ function renderScorecard(sc) {
   $("scNext").textContent = sc.next ? `Next: ${sc.next}` : "";
 }
 
-$("btnStart").addEventListener("click", () => {
+$("btnStart").addEventListener("click", async () => {
+  if (!planReady) {
+    if (!(await ensurePlan())) return;
+  }
   show("screen-record");
   $("btnRec").classList.remove("hidden");
   $("btnStop").classList.add("hidden");
@@ -204,4 +266,4 @@ $("btnUpload").addEventListener("click", upload);
 $("btnAgain").addEventListener("click", () => location.reload());
 wireChips("paceChips", "pace");
 wireChips("fillerChips", "fillers");
-loadPlan().catch(() => { $("dPrompt").textContent = "Could not load today's plan — check connection and reload."; });
+ensurePlan();
