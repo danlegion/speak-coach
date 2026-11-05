@@ -362,9 +362,13 @@ async function loadStats() {
     const overallTrend = real.length < 2 ? "need more reps for a trend"
       : improving > slipping ? "improving" : slipping > improving ? "slipping" : "flat";
     const band = overall >= 80 ? "good" : overall >= 50 ? "mid" : "bad";
+    const trendCls = overallTrend === "improving" ? "t-good" : overallTrend === "slipping" ? "t-bad" : "t-flat";
     ovEl.innerHTML = `<div class="overall-num ${band}">${overall}<span class="overall-max">/100</span></div>`
       + `<div class="overall-bar"><div class="overall-fill ${band}" style="width:${overall}%"></div></div>`
-      + `<div class="sub">Voice L${level} · ${clears}/${real.length} reps Clear · ½ gate (${gatePct}: ${levelClears}/3 Clears) + ½ latest rep bars (${repPct}: ${barsMet}/${bars.length} met) · Trend: ${overallTrend}</div>`;
+      + `<div class="sub">Level progress — ${gatePct}: ${levelClears} of 3 L${level} Clears (${3 - levelClears} more opens L${Number(level) + 1})</div>`
+      + `<div class="sub">Latest rep — ${repPct}: ${barsMet} of ${bars.length} bars met (time, pace, fillers, pauses)</div>`
+      + `<div class="sub">Overall is the average of the two: (${gatePct} + ${repPct}) ÷ 2 = ${overall}</div>`
+      + `<div class="sub">Trend: <span class="${trendCls}">${overallTrend}</span></div>`;
     $("statsNote").textContent = "Test takes excluded. Duration shows the drill's time bar, not a trend; pace is judged against the 120–150 band.";
   } catch (_) {
     curEl.textContent = "Couldn't load stats yet.";
