@@ -413,6 +413,8 @@ function renderScorecard(sc) {
   const v = $("scVerdict");
   v.textContent = sc.verdict === "Clear" ? "✓ Clear" : "↻ Re-drill";
   v.className = `verdict ${sc.verdict === "Clear" ? "clear" : "redrill"}`;
+  $("scoreCard").classList.toggle("card-clear", sc.verdict === "Clear");
+  $("scoreCard").classList.toggle("card-redrill", sc.verdict !== "Clear");
   const m = sc.metrics || {};
   const cell = (val, label) => `<div><span class="mv">${val}</span><span class="mk">${label}</span></div>`;
   $("scMetrics").innerHTML = [
