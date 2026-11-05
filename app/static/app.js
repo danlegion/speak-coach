@@ -333,7 +333,9 @@ async function loadStats() {
         if (t.word === "improving") improving++;
         if (t.word === "slipping") slipping++;
       }
-      const cell = t.word === "improving" ? "cell-good" : t.word === "slipping" ? "cell-bad" : "";
+      const cell = def.good === "band"
+        ? (cur != null && cur >= 120 && cur <= 150 ? "cell-good" : "cell-bad")
+        : t.word === "improving" ? "cell-good" : t.word === "slipping" ? "cell-bad" : "";
       return `<div class="${cell}"><span class="mv">${cur != null ? def.fmt(cur) : "—"}</span><span class="mk">${def.label}</span><span class="mk ${t.cls}">${was}${t.arrow} ${t.word}</span></div>`;
     }).join("");
     const clears = real.filter((s) => s.scorecard.verdict === "Clear").length;
