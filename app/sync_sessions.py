@@ -52,19 +52,53 @@ def remote_sessions() -> list[dict]:
 
 def do_down() -> list[str]:
     RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
+    # Hash-dedupe: a mailbox reset + restore gives an old recording a NEW
+    # remote id. Without this, the restored copy downloads as a brand-new
+    # local session and gets judged as a fresh rep (the Nov 3 watcher
+    # misfire). Match by recording bytes, not by id.
+    import hashlib
+
+    def recording_hashes() -> dict[str, str]:
+        out = {}
+        if RECORDINGS_DIR.is_dir():
+            for sdir in RECORDINGS_DIR.iterdir():
+                if not sdir.is_dir():
+                    continue
+                for rec in sdir.glob("recording.*"):
+                    if rec.is_file():
+                        out[hashlib.sha256(rec.read_bytes()).hexdigest()] = sdir.name
+        return out
+
+    hashes = recording_hashes()
+    mapping = load_map()
+    map_changed = False
     new = []
     for s in remote_sessions():
         sdir = RECORDINGS_DIR / s["session"]
         if (sdir / "meta.json").is_file():
             continue
-        sdir.mkdir(parents=True, exist_ok=True)
         meta = req("GET", f"/api/sessions/{s['session']}/meta")
-        (sdir / "meta.json").write_bytes(meta)
+        blob = b""
         if s.get("recording"):
             blob = req("GET", f"/api/sessions/{s['session']}/recording")
+        if blob:
+            digest = hashlib.sha256(blob).hexdigest()
+            if digest in hashes:
+                existing = hashes[digest]
+                print(f"down: {s['session']} duplicates {existing}, skipped")
+                if mapping.get(existing) != s["session"]:
+                    mapping[existing] = s["session"]
+                    map_changed = True
+                continue
+        sdir.mkdir(parents=True, exist_ok=True)
+        (sdir / "meta.json").write_bytes(meta)
+        if s.get("recording"):
             (sdir / s["recording"]).write_bytes(blob)
+            hashes[hashlib.sha256(blob).hexdigest()] = s["session"]
         new.append(s["session"])
         print(f"down: {s['session']} ({s.get('recording')})")
+    if map_changed:
+        MAP_FILE.write_text(json.dumps(mapping, indent=2), encoding="utf-8")
     if not new:
         print("down: nothing new")
     return new
