@@ -239,6 +239,101 @@ async function poll() {
   } catch (_) { /* keep polling */ }
 }
 
+// Stats card (main page): metrics tracked, current score, overall score,
+// and per-metric trend vs the previous scored rep. "Up/down/flat" is
+// judged by what is good for this speaker, not by the raw number:
+// fillers, repeats and speech ratio improve going down; pauses improve
+// going up; pace is good when it stays inside the conversational band.
+const TRACKED = [
+  { key: "duration_s", label: "Duration", fmt: (v) => `${v}s`, good: "neutral", tol: 3 },
+  { key: "wpm", label: "Words / min", fmt: (v) => `${v}`, good: "band", tol: 0 },
+  { key: "fillers_per_min", label: "Fillers / min", fmt: (v) => `${v}`, good: "down", tol: 0.5 },
+  { key: "repetitions_per_min", label: "Phrase repeats / min", fmt: (v) => `${v}`, good: "down", tol: 0.5 },
+  { key: "pauses_1s", label: "Pauses ≥ 1s", fmt: (v) => `${v}`, good: "up", tol: 0 },
+  { key: "speech_ratio", label: "Speech ratio", fmt: (v) => `${Math.round(v * 100)}%`, good: "down", tol: 0.05 },
+];
+
+function trendFor(def, cur, prev) {
+  if (cur == null || prev == null) return { arrow: "→", word: "flat" };
+  if (def.good === "band") {
+    const inBand = (v) => v >= 120 && v <= 150;
+    if (inBand(cur) && inBand(prev)) return { arrow: "→", word: "flat, in band" };
+    if (inBand(cur) && !inBand(prev)) return { arrow: "↑", word: "improving" };
+    if (!inBand(cur) && inBand(prev)) return { arrow: "↓", word: "slipping" };
+    return { arrow: "→", word: "flat" };
+  }
+  const diff = cur - prev;
+  if (Math.abs(diff) <= def.tol) return { arrow: "→", word: "flat" };
+  if (def.good === "down") {
+    return diff < 0 ? { arrow: "↓", word: "improving" } : { arrow: "↑", word: "slipping" };
+  }
+  if (def.good === "up") {
+    return diff > 0 ? { arrow: "↑", word: "improving" } : { arrow: "↓", word: "slipping" };
+  }
+  return { arrow: diff > 0 ? "↑" : "↓", word: diff > 0 ? "up" : "down" };
+}
+
+async function loadStats() {
+  const curEl = $("statsCurrent"), trendEl = $("statsTrend"), ovEl = $("statsOverall");
+  try {
+    const res = await apiFetch("/api/sessions");
+    if (!res.ok) { curEl.textContent = "Couldn't load stats yet."; return; }
+    const sessions = (await res.json()).sessions || [];
+    const scored = [];
+    for (const s of sessions.filter((x) => x.has_scorecard)) {
+      try {
+        const st = await apiFetch(`/api/status?session=${encodeURIComponent(s.session)}`);
+        if (!st.ok) continue;
+        const out = await st.json();
+        if (out.scorecard) scored.push({ session: s.session, drill: s.drill, scorecard: out.scorecard });
+      } catch (_) { /* skip */ }
+    }
+    // Drop pipeline-test takes (their notes say synthetic) and collapse
+    // mailbox-restored duplicates: same drill + same measured numbers.
+    // The signature is seeded even for skipped synthetics, so a
+    // synthetic's restored copy can't leak through as a "real" rep.
+    const seen = new Set();
+    const real = [];
+    for (const s of scored.sort((a, b) => a.session.localeCompare(b.session))) {
+      const sc = s.scorecard;
+      const m = sc.metrics || {};
+      const sig = [s.drill, m.duration_s, m.wpm, m.word_count, m.fillers_per_min].join("|");
+      if (seen.has(sig)) continue;
+      seen.add(sig);
+      if ((sc.note || "").toLowerCase().includes("synthetic")) continue;
+      real.push(s);
+    }
+    if (!real.length) {
+      curEl.textContent = "No scored reps yet.";
+      ovEl.textContent = "—";
+      return;
+    }
+    const latest = real[real.length - 1];
+    const prev = real.length > 1 ? real[real.length - 2] : null;
+    const lm = latest.scorecard.metrics || {};
+    curEl.textContent = `${latest.drill || "Drill"} · ${latest.session.slice(0, 10)} · ${latest.scorecard.verdict}`;
+    let improving = 0, slipping = 0;
+    trendEl.innerHTML = TRACKED.map((def) => {
+      const cur = lm[def.key], prv = prev ? (prev.scorecard.metrics || {})[def.key] : null;
+      const t = trendFor(def, cur, prv);
+      if (["wpm", "fillers_per_min", "repetitions_per_min", "pauses_1s"].includes(def.key)) {
+        if (t.word === "improving") improving++;
+        if (t.word === "slipping") slipping++;
+      }
+      const was = prv != null ? `was ${def.fmt(prv)} · ` : "";
+      return `<div><span class="mv">${cur != null ? def.fmt(cur) : "—"}</span><span class="mk">${def.label}</span><span class="mk">${was}${t.arrow} ${t.word}</span></div>`;
+    }).join("");
+    const clears = real.filter((s) => s.scorecard.verdict === "Clear").length;
+    const l1clears = real.filter((s) => s.scorecard.verdict === "Clear" && (s.drill || "").startsWith("V-L1-")).length;
+    const overallTrend = real.length < 2 ? "need more reps for a trend"
+      : improving > slipping ? "improving" : slipping > improving ? "slipping" : "flat";
+    ovEl.textContent = `Voice L1 · ${clears}/${real.length} reps Clear · L1 gate: ${l1clears}/3 Clears · Trend: ${overallTrend}`;
+    $("statsNote").textContent = "Practice-test takes excluded; restored mailbox copies counted once.";
+  } catch (_) {
+    curEl.textContent = "Couldn't load stats yet.";
+  }
+}
+
 // Past scorecards: survives reloads, unlike the in-memory session id.
 async function loadPast() {
   const list = $("pastList");
@@ -314,4 +409,4 @@ $("btnUpload").addEventListener("click", upload);
 $("btnAgain").addEventListener("click", () => location.reload());
 wireChips("paceChips", "pace");
 wireChips("fillerChips", "fillers");
-ensurePlan().then((ok) => { if (ok) loadPast(); });
+ensurePlan().then((ok) => { if (ok) { loadPast(); loadStats(); } });
