@@ -365,7 +365,7 @@ async function loadStats() {
     ovEl.innerHTML = `<div class="overall-num ${band}">${overall}<span class="overall-max">/100</span></div>`
       + `<div class="overall-bar"><div class="overall-fill ${band}" style="width:${overall}%"></div></div>`
       + `<div class="sub">Voice L${level} · ${clears}/${real.length} reps Clear · ½ gate (${gatePct}: ${levelClears}/3 Clears) + ½ latest rep bars (${repPct}: ${barsMet}/${bars.length} met) · Trend: ${overallTrend}</div>`;
-    $("statsNote").textContent = "Practice-test takes excluded; restored mailbox copies counted once. Duration shows the drill's time bar, not a trend; pace is judged against the 120–150 band. Repeats aren't in the number — no numeric bar exists for them yet.";
+    $("statsNote").textContent = "Test takes excluded. Duration shows the drill's time bar, not a trend; pace is judged against the 120–150 band.";
   } catch (_) {
     curEl.textContent = "Couldn't load stats yet.";
   }
