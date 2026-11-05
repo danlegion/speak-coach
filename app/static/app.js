@@ -364,7 +364,8 @@ async function loadStats() {
     const band = overall >= 80 ? "good" : overall >= 50 ? "mid" : "bad";
     const trendCls = overallTrend === "improving" ? "t-good" : overallTrend === "slipping" ? "t-bad" : "t-flat";
     ovEl.innerHTML = `<div class="overall-num ${band}">${overall}<span class="overall-max">/100</span></div>`
-      + `<div class="overall-bar"><div class="overall-fill ${band}" style="width:${overall}%"></div></div>`
+      + `<div class="sub"><span class="t-good"><b>Going right:</b></span> ${(latest.scorecard.strengths || []).slice(0, 2).join(" ") || `${barsMet} of ${bars.length} bars met.`}</div>`
+      + (latest.scorecard.one_fix ? `<div class="sub"><span style="color:var(--acc)"><b>To improve:</b></span> ${latest.scorecard.one_fix}</div>` : "")
       + `<div class="sub">Level progress — ${gatePct}: ${levelClears} of 3 L${level} Clears (${3 - levelClears} more opens L${Number(level) + 1})</div>`
       + `<div class="sub">Latest rep — ${repPct}: ${barsMet} of ${bars.length} bars met (time, pace, fillers, pauses)</div>`
       + `<div class="sub">Overall is the average of the two: (${gatePct} + ${repPct}) ÷ 2 = ${overall}</div>`
