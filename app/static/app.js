@@ -254,23 +254,23 @@ const TRACKED = [
 ];
 
 function trendFor(def, cur, prev) {
-  if (cur == null || prev == null) return { arrow: "→", word: "flat" };
+  if (cur == null || prev == null) return { arrow: "→", word: "flat", cls: "t-flat" };
   if (def.good === "band") {
     const inBand = (v) => v >= 120 && v <= 150;
-    if (inBand(cur) && inBand(prev)) return { arrow: "→", word: "flat, in band" };
-    if (inBand(cur) && !inBand(prev)) return { arrow: "↑", word: "improving" };
-    if (!inBand(cur) && inBand(prev)) return { arrow: "↓", word: "slipping" };
-    return { arrow: "→", word: "flat" };
+    if (inBand(cur) && inBand(prev)) return { arrow: "→", word: "flat, in band", cls: "t-flat" };
+    if (inBand(cur) && !inBand(prev)) return { arrow: "↑", word: "improving", cls: "t-good" };
+    if (!inBand(cur) && inBand(prev)) return { arrow: "↓", word: "slipping", cls: "t-bad" };
+    return { arrow: "→", word: "flat", cls: "t-flat" };
   }
   const diff = cur - prev;
-  if (Math.abs(diff) <= def.tol) return { arrow: "→", word: "flat" };
+  if (Math.abs(diff) <= def.tol) return { arrow: "→", word: "flat", cls: "t-flat" };
   if (def.good === "down") {
-    return diff < 0 ? { arrow: "↓", word: "improving" } : { arrow: "↑", word: "slipping" };
+    return diff < 0 ? { arrow: "↓", word: "improving", cls: "t-good" } : { arrow: "↑", word: "slipping", cls: "t-bad" };
   }
   if (def.good === "up") {
-    return diff > 0 ? { arrow: "↑", word: "improving" } : { arrow: "↓", word: "slipping" };
+    return diff > 0 ? { arrow: "↑", word: "improving", cls: "t-good" } : { arrow: "↓", word: "slipping", cls: "t-bad" };
   }
-  return { arrow: diff > 0 ? "↑" : "↓", word: diff > 0 ? "up" : "down" };
+  return { arrow: diff > 0 ? "↑" : "↓", word: diff > 0 ? "up" : "down", cls: "t-flat" };
 }
 
 async function loadStats() {
@@ -311,7 +311,9 @@ async function loadStats() {
     const latest = real[real.length - 1];
     const prev = real.length > 1 ? real[real.length - 2] : null;
     const lm = latest.scorecard.metrics || {};
-    curEl.textContent = `${latest.drill || "Drill"} · ${latest.session.slice(0, 10)} · ${latest.scorecard.verdict}`;
+    const verdictCls = latest.scorecard.verdict === "Clear" ? "v-clear" : "v-bad";
+    const verdictMark = latest.scorecard.verdict === "Clear" ? "✓ Clear" : "↻ Re-drill";
+    curEl.innerHTML = `${latest.drill || "Drill"} · ${latest.session.slice(0, 10)} · <span class="${verdictCls}">${verdictMark}</span>`;
     let improving = 0, slipping = 0;
     // Duration has no trend: its only goal is the drill's own time bar.
     const DRILL_SECONDS = { "V-L1-1": 60, "V-L1-2": 60, "V-L2-1": 90, "V-L2-2": 90, "V-L3-1": 90, "V-L3-2": 60, "V-L4-1": 120 };
@@ -322,21 +324,44 @@ async function loadStats() {
         const target = DRILL_SECONDS[latest.drill];
         const bar = target == null ? "no time bar"
           : cur >= target ? `✓ ${target}s bar met` : `✗ ${target}s bar missed`;
-        return `<div><span class="mv">${cur != null ? def.fmt(cur) : "—"}</span><span class="mk">${def.label}</span><span class="mk">${was}${bar}</span></div>`;
+        const cls = target == null ? "t-flat" : cur >= target ? "t-good" : "t-bad";
+        return `<div><span class="mv">${cur != null ? def.fmt(cur) : "—"}</span><span class="mk">${def.label}</span><span class="mk ${cls}">${was}${bar}</span></div>`;
       }
       const t = trendFor(def, cur, prv);
       if (["wpm", "fillers_per_min", "repetitions_per_min", "pauses_1s"].includes(def.key)) {
         if (t.word === "improving") improving++;
         if (t.word === "slipping") slipping++;
       }
-      return `<div><span class="mv">${cur != null ? def.fmt(cur) : "—"}</span><span class="mk">${def.label}</span><span class="mk">${was}${t.arrow} ${t.word}</span></div>`;
+      return `<div><span class="mv">${cur != null ? def.fmt(cur) : "—"}</span><span class="mk">${def.label}</span><span class="mk ${t.cls}">${was}${t.arrow} ${t.word}</span></div>`;
     }).join("");
     const clears = real.filter((s) => s.scorecard.verdict === "Clear").length;
-    const l1clears = real.filter((s) => s.scorecard.verdict === "Clear" && (s.drill || "").startsWith("V-L1-")).length;
+    // Overall 0–100: half the current level's gate progress, half the
+    // latest rep's bar attainment. Bars use the nearest defined goals:
+    // duration = the drill's time bar, WPM = the 120–150 band, fillers =
+    // under 8/min (L2 bar), pauses = 3+ (L3 count bar). Phrase repeats
+    // have no numeric bar yet, so they count as trend only, never in
+    // the number. The number measures your current level, not your
+    // career total — it resets when a new level starts.
+    const levelMatch = (latest.drill || "").match(/V-L(\d)-/);
+    const level = levelMatch ? levelMatch[1] : "1";
+    const levelClears = real.filter((s) => s.scorecard.verdict === "Clear" && (s.drill || "").startsWith(`V-L${level}-`)).length;
+    const gatePct = Math.round((levelClears / 3) * 100);
+    const bars = [];
+    const target = DRILL_SECONDS[latest.drill];
+    if (target != null && lm.duration_s != null) bars.push(lm.duration_s >= target ? 100 : 0);
+    if (lm.wpm != null) bars.push(lm.wpm >= 120 && lm.wpm <= 150 ? 100 : 0);
+    if (lm.fillers_per_min != null) bars.push(lm.fillers_per_min < 8 ? 100 : 0);
+    if (lm.pauses_1s != null) bars.push(lm.pauses_1s >= 3 ? 100 : 0);
+    const barsMet = bars.filter((b) => b === 100).length;
+    const repPct = bars.length ? Math.round(bars.reduce((a, b) => a + b, 0) / bars.length) : gatePct;
+    const overall = Math.round((gatePct + repPct) / 2);
     const overallTrend = real.length < 2 ? "need more reps for a trend"
       : improving > slipping ? "improving" : slipping > improving ? "slipping" : "flat";
-    ovEl.textContent = `Voice L1 · ${clears}/${real.length} reps Clear · L1 gate: ${l1clears}/3 Clears · Trend: ${overallTrend}`;
-    $("statsNote").textContent = "Practice-test takes excluded; restored mailbox copies counted once. Duration shows the drill's time bar, not a trend; pace is judged against the 120–150 band.";
+    const band = overall >= 80 ? "good" : overall >= 50 ? "mid" : "bad";
+    ovEl.innerHTML = `<div class="overall-num ${band}">${overall}<span class="overall-max">/100</span></div>`
+      + `<div class="overall-bar"><div class="overall-fill ${band}" style="width:${overall}%"></div></div>`
+      + `<div class="sub">Voice L${level} · ${clears}/${real.length} reps Clear · ½ gate (${gatePct}: ${levelClears}/3 Clears) + ½ latest rep bars (${repPct}: ${barsMet}/${bars.length} met) · Trend: ${overallTrend}</div>`;
+    $("statsNote").textContent = "Practice-test takes excluded; restored mailbox copies counted once. Duration shows the drill's time bar, not a trend; pace is judged against the 120–150 band. Repeats aren't in the number — no numeric bar exists for them yet.";
   } catch (_) {
     curEl.textContent = "Couldn't load stats yet.";
   }
@@ -369,7 +394,11 @@ async function loadPast() {
         const st = await apiFetch(`/api/status?session=${encodeURIComponent(s.session)}`);
         if (st.ok) {
           const out = await st.json();
-          if (out.scorecard) btn.textContent = `${s.drill || "Drill"} · ${s.session.slice(0, 10)} · ${out.scorecard.verdict}`;
+          if (out.scorecard) {
+            const cls = out.scorecard.verdict === "Clear" ? "v-clear" : "v-bad";
+            const mark = out.scorecard.verdict === "Clear" ? "✓ Clear" : "↻ Re-drill";
+            btn.innerHTML = `${s.drill || "Drill"} · ${s.session.slice(0, 10)} · <span class="${cls}">${mark}</span>`;
+          }
         }
       } catch (_) { /* leave the loading label */ }
     }
