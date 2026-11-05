@@ -27,7 +27,7 @@ h2 { font-size:22px; margin:8px 0 4px; }
 .fix { font-size:19px; font-weight:600; }
 .constraints, .principles { margin:6px 0; padding-left:20px; color:var(--ink); font-size:15px; }
 .constraints li, .principles li { margin:2px 0; }
-button.primary { width:100%; padding:16px; font-size:19px; font-weight:700; border:0; border-radius:14px; background:var(--acc); color:#1a1408; }
+button.primary { width:100%; padding:16px; font-size:19px; font-weight:700; border:0; border-radius:14px; background:var(--acc); color:#1a1408; margin-bottom:20px; }
 button.primary:disabled { opacity:.35; }
 .videotoggle { display:block; margin:0 2px 12px; color:var(--dim); }
 .countdown { font-size:110px; font-weight:800; text-align:center; padding:30px 0; }
@@ -53,11 +53,10 @@ button.ghost { background:#2c3742; color:var(--ink); }
 .metrics div.cell-good .mv { color:var(--good); }
 .metrics div.cell-bad { background:#331c19; border:1px solid #6b2a24; }
 .metrics div.cell-bad .mv { color:var(--bad); }
-/* Current score: one full-width row per metric — labels at body size,
-   value right-aligned, trend on its own line, status as a colored edge. */
-.scorerow { background:#12181f; border-radius:10px; padding:12px 14px; margin-bottom:8px; border-left:4px solid transparent; }
-.scorerow.cell-good { background:#1a2f22; border-left-color:var(--good); }
-.scorerow.cell-bad { background:#331c19; border-left-color:var(--bad); }
+/* Current score: plain list rows, not mini-cards inside the card —
+   hairline separators, status carried only by the value/trend color. */
+.scorerow { background:transparent; border:none; border-bottom:1px solid #2c3742; border-radius:0; padding:10px 2px; margin-bottom:0; }
+#statsTrend .scorerow:last-child { border-bottom:none; }
 .sr-top { display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
 .sr-label { font-size:17px; }
 .sr-value { font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
