@@ -326,7 +326,7 @@ async function loadStats() {
           : cur >= target ? `✓ ${target}s bar met` : `✗ ${target}s bar missed`;
         const cls = target == null ? "t-flat" : cur >= target ? "t-good" : "t-bad";
         const cell = target == null ? "" : cur >= target ? "cell-good" : "cell-bad";
-        return `<div class="${cell}"><span class="mv">${cur != null ? def.fmt(cur) : "—"}</span><span class="mk">${def.label}</span><span class="mk ${cls}">${was}${bar}</span></div>`;
+        return `<div class="scorerow ${cell}"><div class="sr-top"><span class="sr-label">${def.label}</span><span class="sr-value">${cur != null ? def.fmt(cur) : "—"}</span></div><div class="sr-trend ${cls}">${was}${bar}</div></div>`;
       }
       const t = trendFor(def, cur, prv);
       if (["wpm", "fillers_per_min", "repetitions_per_min", "pauses_1s"].includes(def.key)) {
@@ -336,7 +336,7 @@ async function loadStats() {
       const cell = def.good === "band"
         ? (cur != null && cur >= 120 && cur <= 150 ? "cell-good" : "cell-bad")
         : t.word === "improving" ? "cell-good" : t.word === "slipping" ? "cell-bad" : "";
-      return `<div class="${cell}"><span class="mv">${cur != null ? def.fmt(cur) : "—"}</span><span class="mk">${def.label}</span><span class="mk ${t.cls}">${was}${t.arrow} ${t.word}</span></div>`;
+      return `<div class="scorerow ${cell}"><div class="sr-top"><span class="sr-label">${def.label}</span><span class="sr-value">${cur != null ? def.fmt(cur) : "—"}</span></div><div class="sr-trend ${t.cls}">${was}${t.arrow} ${t.word}</div></div>`;
     }).join("");
     const clears = real.filter((s) => s.scorecard.verdict === "Clear").length;
     // Overall 0–100: half the current level's gate progress, half the
