@@ -18,5 +18,16 @@
     "track": "Voice"
   },
   "fix_carried_forward": "Place one pause deliberately before the key line",
-  "generated_for": "2026-11-04"
+  "generated_for": "2026-11-04",
+  "learn": {
+    "level_focus": "Voice L1 trains continuity, not polish: finish 60 seconds without stopping or restarting. Speed, pace, and polish come later — first, don't stop.",
+    "your_pattern": "Your filler isn't um or uh — it's repeating the last phrase when the next word isn't ready. Fillers are discomfort with silence made audible; the pause starves them.",
+    "during_your_day": [
+      "When the next word isn't ready, pause a full second instead of repeating the last phrase.",
+      "Before the key line in any conversation — the point, the number, the ask — place one deliberate pause.",
+      "Slow down on what matters; speed up on the rest. One default speed flattens everything.",
+      "After any conversation, ask yourself: did I finish my thought without restarting?"
+    ],
+    "how_feedback_works": "Brief → record → predict your pace and fillers before listening back → review → keep exactly one fix → re-drill. Predicting first is what makes the feedback land."
+  }
 }

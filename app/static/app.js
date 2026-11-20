@@ -72,6 +72,17 @@ async function loadPlan() {
   $("dFix").textContent = plan.fix_carried_forward;
   $("dConstraints").innerHTML = (d.constraints || []).map((c) => `<li>${c}</li>`).join("");
   $("dPrinciples").innerHTML = (d.principles || []).map((c) => `<li>${c}</li>`).join("");
+  const learn = plan.learn;
+  const learnCard = $("learnCard");
+  if (learn) {
+    learnCard.classList.remove("hidden");
+    $("learnFocus").textContent = learn.level_focus || "";
+    $("learnPattern").textContent = learn.your_pattern || "";
+    $("learnDay").innerHTML = (learn.during_your_day || []).map((c) => `<li>${c}</li>`).join("");
+    $("learnLoop").textContent = learn.how_feedback_works || "";
+  } else {
+    learnCard.classList.add("hidden");
+  }
   $("targetLabel").textContent = `Target ${fmt(d.time_seconds)} · no restarts`;
 }
 
